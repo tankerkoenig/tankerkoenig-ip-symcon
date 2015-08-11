@@ -11,5 +11,5 @@ Das Script stammt aus dem Symcon-Forum und wurde hier mit Erlaubnis des Autors v
 
 
 Links
-https://creativecommons.tankerkoenig.de#register
-https://www.symcon.de/forum/threads/28346-Tankerkoenig-de-(Spritpreise-mit-Umkreissuche-oder-Detailabfrage)
+- https://creativecommons.tankerkoenig.de#register
+- https://www.symcon.de/forum/threads/28346-Tankerkoenig-de-(Spritpreise-mit-Umkreissuche-oder-Detailabfrage)
