@@ -1,7 +1,7 @@
 # Script zum Zugriff von IP-Symcon Smarthome-Software auf aktuelle Spritpreise über das Tankerkönig-API
 
-## API unter Open Data Lizenz
-Tankerkoenig.de betreibt ein freies API für Echtzeit-Spritpreise an deutschen Tankstellen. Aktuelle Spritpreise können über die IP-Symcon-Smarthome-Lösung angezeigt werden.
+## API unter Open-Data-Lizenz
+https://creativecommons.tankerkoenig.de betreibt ein freies API für Echtzeit-Spritpreise an deutschen Tankstellen. Aktuelle Spritpreise können über die IP-Symcon-Smarthome-Lösung angezeigt werden.
 
 Das Tankerkönig-API steht unter einer Open-Data-Lizenz, es ist lediglich ein API-Key nötig, der unter https://creativecommons.tankerkoenig.de#register abgerufen werden kann.
 
