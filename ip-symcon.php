@@ -1,6 +1,6 @@
 <?
 /*** TANKERKOENIG.DE (http://www.tankerkoenig.de) ***
-*** Script v1.3 by Bayaro ***
+*** Script v1.6 by Bayaro ***
 
 https://www.symcon.de/forum/threads/28346-Tankerkoenig-de-%28Spritpreise-mit-Umkreissuche-oder-Detailabfrage%29
 
@@ -36,6 +36,7 @@ $sort = "dist";     // Sortieren nach Preis oder Distanz (price, dist)
 $type = "diesel";  // Spritsorte (e5, e10, diesel)
 /*************************************************************************************************************/
 Tankerkoenig_Umkreissuche($APIkey, $lat, $lng, $radius, $sort, $type);  // Auskommentieren, wenn nicht gewünscht
+Tankerkoenig_Umkreissuche_GuenstigsterPreis($APIkey, $lat, $lng, $radius, $sort, $type);  // Auskommentieren, wenn nicht gewünscht
 
 
 /***** KONFIGURATION FÜR DIE DETAILABFRAGE *******************************************************************/
@@ -49,21 +50,21 @@ Tankerkoenig_Detailabfrage($APIkey, $Tankstellen);  // Auskommentieren, wenn nic
 
 
 
-
-
-
 /******** AB HIER NICHTS MEHR ÄNDERN ********/
 IPS_SetScriptTimer($_IPS['SELF'], $UpdateIntervall * 60);
 
 
 function Tankerkoenig_Umkreissuche($APIkey, $lat, $lng, $radius, $sort, $type) {
       Global $NamenMitID;
-    $KategorieID_Umreissuche = Kategorie_GetOrSet("Umkreissuche", $_IPS['SELF']);
-    
+    $KategorieID_Umkreissuche = Kategorie_GetOrSet("Umkreissuche", $_IPS['SELF']);
+
     // API abfragen und dekodieren
     $json = SYS_GetURLContent("https://creativecommons.tankerkoenig.de/json/list.php?lat=$lat&lng=$lng&rad=$radius&sort=$sort&type=$type&apikey=$APIkey");
+    if ($json === false) {
+       IPS_LogMessage("Tankerkoenig", "FEHLER - Die Tankerkoenig-API konnte nicht abgefragt werden!");
+       exit;
+    }
     $data = json_decode($json);
-    print_r($data);
 
     // Daten der Tankstellen in Array speichern
     $TankstellenAR = $data->stations;
@@ -81,14 +82,14 @@ function Tankerkoenig_Umkreissuche($APIkey, $lat, $lng, $radius, $sort, $type) {
         $TankstellePLZ = utf8_decode($TankstellenAR[$i]->postCode);
         $TankstelleOrt = utf8_decode($TankstellenAR[$i]->place);
         $TankstelleAnschrift = $TankstellePLZ." ".$TankstelleOrt.", ".$TankstelleStrasse." ".$TankstelleHausnummer;
-        
+
         if ($NamenMitID == true) {
             $DummyName = utf8_decode($TankstellenAR[$i]->brand)."-".utf8_decode($TankstellenAR[$i]->place)."_".substr($TankstelleID, -5);
         }
         else {
            $DummyName = utf8_decode($TankstellenAR[$i]->brand)."-".utf8_decode($TankstellenAR[$i]->place);
         }
-        $DummyTankstelle = Dummy_GetOrSet($DummyName, $KategorieID_Umreissuche);
+        $DummyTankstelle = Dummy_GetOrSet($DummyName, $KategorieID_Umkreissuche);
         Variable_GetOrSet("Marke", $DummyTankstelle, $TankstelleMarke);
         Variable_GetOrSet("Distanz", $DummyTankstelle, $TankstelleDistanz);
         Variable_GetOrSet("Preis", $DummyTankstelle, $TankstellePreis);
@@ -100,6 +101,99 @@ function Tankerkoenig_Umkreissuche($APIkey, $lat, $lng, $radius, $sort, $type) {
 
 
 
+function Tankerkoenig_Umkreissuche_GuenstigsterPreis($APIkey, $lat, $lng, $radius, $sort, $type) {
+    $KategorieID_Umkreissuche_Guenstigste = $_IPS['SELF'];
+
+    // API abfragen und dekodieren
+    $json = SYS_GetURLContent("https://creativecommons.tankerkoenig.de/json/list.php?lat=$lat&lng=$lng&rad=$radius&sort=$sort&type=$type&apikey=$APIkey");
+    if ($json === false) {
+       IPS_LogMessage("Tankerkoenig", "FEHLER - Die Tankerkoenig-API konnte nicht abgefragt werden!");
+       exit;
+    }
+    $data = json_decode($json);
+
+    // Daten der Tankstellen in Array speichern
+    $TankstellenAR = $data->stations;
+
+    // Daten der Tankstellen aus Array auslesen
+    $i = 0;
+    $PreisPruefwert = 9.99;
+    $DistanzPruefwert = 100.0;
+    foreach ($TankstellenAR as $TankstelleAR) {
+        $TankstelleName = utf8_decode($TankstellenAR[$i]->name);
+        $TankstelleMarke = utf8_decode($TankstellenAR[$i]->brand);
+        $TankstelleDistanz = (float)utf8_decode($TankstellenAR[$i]->dist);
+        $TankstellePreis = (float)utf8_decode($TankstellenAR[$i]->price);
+        $TankstelleID = utf8_decode($TankstellenAR[$i]->id);
+        $TankstelleStrasse = utf8_decode($TankstellenAR[$i]->street);
+        $TankstelleHausnummer = utf8_decode($TankstellenAR[$i]->houseNumber);
+        $TankstellePLZ = utf8_decode($TankstellenAR[$i]->postCode);
+        $TankstelleOrt = utf8_decode($TankstellenAR[$i]->place);
+        $TankstelleAnschrift = $TankstellePLZ." ".$TankstelleOrt.", ".$TankstelleStrasse." ".$TankstelleHausnummer;
+
+        if ($TankstellePreis < $PreisPruefwert) {
+            $json = SYS_GetURLContent("https://creativecommons.tankerkoenig.de/json/detail.php?id=$TankstelleID&apikey=$APIkey");
+            if ($json === false) {
+               IPS_LogMessage("Tankerkoenig", "FEHLER - Die Tankerkoenig-API konnte nicht abgefragt werden!");
+               exit;
+            }
+            $Tankstelle = json_decode($json);
+            $TankstelleGeoffnet = (boolean)utf8_decode($Tankstelle->station->isOpen);
+            $TankstelleGeoffnetVon = utf8_decode($Tankstelle->station->openingTimes[0]->start);
+            $TankstelleGeoffnetBis = utf8_decode($Tankstelle->station->openingTimes[0]->end);
+            if ($TankstelleGeoffnet == true) {
+              $PreisPruefwert = $TankstellePreis;
+                $DistanzPruefwert = $TankstelleDistanz;
+                $TankstelleNameGuenstig = $TankstelleName;
+                $TankstelleMarkeGuenstig = $TankstelleMarke;
+                $TankstelleDistanzGuenstig = $TankstelleDistanz;
+                $TankstellePreisGuenstig = $TankstellePreis;
+                $TankstelleIDGuenstig = $TankstelleID;
+                $TankstelleStrasseGuenstig = $TankstelleStrasse;
+                $TankstelleHausnummerGuenstig = $TankstelleHausnummer;
+                $TankstellePLZGuenstig = $TankstellePLZ;
+                $TankstelleOrtGuenstig = $TankstelleOrt;
+                $TankstelleGeoffnetVonGuenstig = $TankstelleGeoffnetVon;
+                $TankstelleGeoffnetBisGuenstig = $TankstelleGeoffnetBis;
+                $TankstelleGeoffnetGuenstig = $TankstelleGeoffnet;
+                $TankstelleAnschriftGuenstig = $TankstellePLZ." ".$TankstelleOrt.", ".$TankstelleStrasse." ".$TankstelleHausnummer;
+            }
+        }
+        elseif ($TankstellePreis == $PreisPruefwert) {
+           if ($TankstelleDistanz < $DistanzPruefwert) {
+              $PreisPruefwert = $TankstellePreis;
+                $DistanzPruefwert = $TankstelleDistanz;
+                $TankstelleNameGuenstig = $TankstelleName;
+                $TankstelleMarkeGuenstig = $TankstelleMarke;
+                $TankstelleDistanzGuenstig = $TankstelleDistanz;
+                $TankstellePreisGuenstig = $TankstellePreis;
+                $TankstelleIDGuenstig = $TankstelleID;
+                $TankstelleStrasseGuenstig = $TankstelleStrasse;
+                $TankstelleHausnummerGuenstig = $TankstelleHausnummer;
+                $TankstellePLZGuenstig = $TankstellePLZ;
+                $TankstelleOrtGuenstig = $TankstelleOrt;
+                $TankstelleGeoffnetVonGuenstig = $TankstelleGeoffnetVon;
+                $TankstelleGeoffnetBisGuenstig = $TankstelleGeoffnetBis;
+                $TankstelleGeoffnetGuenstig = $TankstelleGeoffnet;
+                $TankstelleAnschriftGuenstig = $TankstellePLZ." ".$TankstelleOrt.", ".$TankstelleStrasse." ".$TankstelleHausnummer;
+           }
+        }
+        $i++;
+    }
+    
+    $DummyTankstelle = Kategorie_GetOrSet("Umkreissuche (günstigster Preis)", $KategorieID_Umkreissuche_Guenstigste);
+    Variable_GetOrSet("Name", $DummyTankstelle, $TankstelleNameGuenstig);
+    Variable_GetOrSet("Marke", $DummyTankstelle, $TankstelleMarkeGuenstig);
+    Variable_GetOrSet("Distanz", $DummyTankstelle, $TankstelleDistanzGuenstig);
+    Variable_GetOrSet("Preis", $DummyTankstelle, $TankstellePreisGuenstig);
+    Variable_GetOrSet("Anschrift", $DummyTankstelle, $TankstelleAnschriftGuenstig);
+    Variable_GetOrSet("Geöffnet", $DummyTankstelle, $TankstelleGeoffnet);
+    Variable_GetOrSet("Geöffnet_von", $DummyTankstelle, $TankstelleGeoffnetVon);
+    Variable_GetOrSet("Geöffnet_bis", $DummyTankstelle, $TankstelleGeoffnetBis);
+}
+
+
+
 function Tankerkoenig_Detailabfrage($APIkey, $TankstellenAR) {
     Global $NamenMitID;
     $KategorieID_Detailabfrage = Kategorie_GetOrSet("Detailabfrage", $_IPS['SELF']);
@@ -107,6 +201,10 @@ function Tankerkoenig_Detailabfrage($APIkey, $TankstellenAR) {
     // Daten der Tankstelle(n) auslesen
     foreach ($TankstellenAR as $TankstelleID) {
        $json = SYS_GetURLContent("https://creativecommons.tankerkoenig.de/json/detail.php?id=$TankstelleID&apikey=$APIkey");
+       if ($json === false) {
+           IPS_LogMessage("Tankerkoenig", "FEHLER - Die Tankerkoenig-API konnte nicht abgefragt werden!");
+           exit;
+        }
         $Tankstelle = json_decode($json);
         $TankstelleName = utf8_decode($Tankstelle->station->name);
         $TankstelleMarke = utf8_decode($Tankstelle->station->brand);
@@ -122,7 +220,7 @@ function Tankerkoenig_Detailabfrage($APIkey, $TankstellenAR) {
         $TankstellePLZ = utf8_decode($Tankstelle->station->postCode);
         $TankstelleOrt = utf8_decode($Tankstelle->station->place);
         $TankstelleAnschrift = $TankstellePLZ." ".$TankstelleOrt.", ".$TankstelleStrasse." ".$TankstelleHausnummer;
-        
+
         if ($NamenMitID == true) {
             $DummyName = utf8_decode($Tankstelle->station->brand)."-".utf8_decode($Tankstelle->station->place)."_".substr($TankstelleID, -5);
         }

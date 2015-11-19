@@ -8,7 +8,9 @@ Das Tankerkönig-API steht unter einer Open-Data-Lizenz, es ist lediglich ein AP
 ## Script aus dem Symcon-Forum
 Das Script stammt aus dem Symcon-Forum und wird hier mit Erlaubnis des Autors veröffentlicht.
 
-
+## History
+### Update auf Version 1.6
+Siehe symcon-Forum: https://www.symcon.de/forum/threads/28346-Tankerkoenig-de-%28Spritpreise-mit-Umkreissuche-oder-Detailabfrage%29
 
 Links
 - https://www.symcon.de/forum/threads/28346-Tankerkoenig-de-(Spritpreise-mit-Umkreissuche-oder-Detailabfrage)
