@@ -9,8 +9,12 @@ Das Tankerkönig-API steht unter einer Open-Data-Lizenz, es ist lediglich ein AP
 Das Script stammt aus dem Symcon-Forum und wird hier mit Erlaubnis des Autors veröffentlicht.
 
 ## History
-### Update auf Version 1.6
 Siehe symcon-Forum: https://www.symcon.de/forum/threads/28346-Tankerkoenig-de-%28Spritpreise-mit-Umkreissuche-oder-Detailabfrage%29
+
+v1.4 > Fehler bei der Datenabfrage werden jetzt abgefangen, keine Liste von Folgefehlern mehr, Fehlerausgabe in Log + Meldungen Fenster
+v1.5 > Umkreissuche erweitert um Ausgabe der Tankstelle mit dem niedrigsten Preis (wenn mehrere gleich günstig sind, dann wird die mit der kleinsten Distanz ausgegeben)
+v1.6 > Bei der Tankstelle mit dem günstigsten Preis wird jetzt mit überprüft, ob die Tankstelle überhaupt geöffnet hat, ansonsten wird eine geöffnete Alternative (nächst höherer Preis/Entfernung) ausgegeben. Zusätzlich werden noch die Öffnungszeiten und Geöffnet/Geschlossen in Variablen ausgegeben.
+
 
 Links
 - https://www.symcon.de/forum/threads/28346-Tankerkoenig-de-(Spritpreise-mit-Umkreissuche-oder-Detailabfrage)
