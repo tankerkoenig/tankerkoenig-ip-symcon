@@ -19,4 +19,4 @@ Falls jemand etwas beitragen will: sehr gerne. Der Code sollte den Nutzungsbedin
 - keine Veröffentlichung von API-Keys - statt dessen den Hinweis wie man einen Key beantragt
 
 
-Code bitte an info@tankerkoenig.de
+Code bitte an info@tankerkoenig.de oder per pull-Request hierher
