@@ -4,8 +4,6 @@
 
 Falls jemand etwas beitragen will: sehr gerne. Der Code sollte den Nutzungsbedingungen genügen:
 
-Falls jemand etwas beitragen will: sehr gerne. Der Code sollte den Nutzungsbedingungen genügen:
-
 - Keine Verwendung von Detailabfrage (detail.php) für Preis-Updates. Statt dessen Listenabfrage (list.php), oder - besser - prices.php (siehe API-Doku https://creativecommons.tankerkoenig.de)
 
 - Intervall 10 Minuten + plus ein paar Sekunden, zur Vermeidung von Lastspitzen
